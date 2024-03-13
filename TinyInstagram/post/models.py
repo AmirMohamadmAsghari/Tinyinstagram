@@ -24,3 +24,10 @@ class Dislike(models.Model):
 class Tag(models.Model):
     content = models.CharField(max_length=20)
     post_id = models.ManyToManyField(Post,related_name='tag')
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
