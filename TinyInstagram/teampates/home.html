@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Include Swiper -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <!-- Custom Styles -->
+    <style>
+        .post-card {
+            background-color: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            overflow: hidden; /* Ensure photos stay within the post field */
+        }
+
+        .post-card-content {
+            padding: 1.5rem;
+            position: relative; /* Position for photo slide buttons */
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .post-content {
+            margin-top: 1rem;
+            color: #666;
+        }
+
+        .swiper-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 1.5rem;
+        }
+
+        .post-actions button {
+            color: #4a5568;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .post-actions button:hover {
+            color: #1a202c;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+<nav class="bg-gray-800 py-4">
+    <div class="container mx-auto flex justify-between items-center">
+        <!-- Logo -->
+        <a href="#" class="text-white text-2xl font-semibold">MyApp</a>
+
+        <!-- Navbar links -->
+        <div class="hidden md:block">
+            <a href="#" class="text-white hover:bg-gray-700 px-4 py-2 rounded-md">Home</a>
+            <a href="#" class="text-white hover:bg-gray-700 px-4 py-2 rounded-md">Profile</a>
+            <a href="#" class="text-white hover:bg-gray-700 px-4 py-2 rounded-md">Explore</a>
+            <a href="#" class="text-white hover:bg-gray-700 px-4 py-2 rounded-md">About</a>
+        </div>
+
+        <!-- Mobile Menu Button (hidden by default) -->
+        <button class="md:hidden text-white focus:outline-none">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+        </button>
+    </div>
+</nav>
+
+    <div class="container mx-auto py-8">
+        <div class="max-w-lg mx-auto">
+            <div class="post-card">
+                <div class="post-card-content">
+                    <h2 class="post-title">Post Title</h2>
+                    <p class="post-content">Post Content Here</p>
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide">
+                                <img src="Cookies.jpeg" alt="Photo 1">
+                            </div>
+                            <div class="swiper-slide">
+                                <img src="Cookies.jpeg" alt="Photo 2">
+                            </div>
+                            <div class="swiper-slide">
+                                <img src="Cookies.jpeg" alt="Photo 3">
+                            </div>
+                            <!-- Add more images as needed -->
+                        </div>
+                        <div class="swiper-pagination"></div>
+                    </div>
+                </div>
+                <div class="post-actions">
+                    <div>
+                        <button class="like-btn mr-4">
+                            Like
+                        </button>
+                        <button class="dislike-btn mr-4">
+                            Dislike
+                        </button>
+                        <button class="comment-btn">
+                            Comment
+                        </button>
+                    </div>
+                    <span class="text-gray-500 text-xs">2 hours ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Swiper -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <!-- Initialize Swiper -->
+    <script>
+        var swiper = new Swiper('.swiper-container', {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+        });
+    </script>
+</body>
+
+</html>
