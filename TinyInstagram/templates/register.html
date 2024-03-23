@@ -1,22 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration</title>
-    <!-- Include Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
+{% block title %}Register{% endblock %}
 
-<body class="bg-gray-100 flex justify-center items-center h-screen">
-    <div class="max-w-md w-full p-6 bg-white rounded-lg shadow-lg">
+
+{% block content %}
+    <div class="max-w-md w-full p-6 bg-white rounded-lg shadow-lg container mx-auto py-8">
         <h2 class="text-2xl font-semibold mb-4">User Registration</h2>
         <form action="{% url 'register' %}" method="POST">
             {% csrf_token %}
             <div class="mb-4">
                 <label for="username" class="block text-gray-700 font-medium">Username</label>
-                <input type="text" id="username" name="username" class="border-4 border-purple-900 mt-1 block border-purple-900 w-full rounded-md  focus:border-purple-900 focus:ring-indigo-500">
+                <input type="text" id="username" name="name" class="border-4 border-purple-900 mt-1 block border-purple-900 w-full rounded-md  focus:border-purple-900 focus:ring-indigo-500">
             </div>
             <div class="mb-4">
                 <label for="email" class="block text-gray-700 font-medium">Email</label>
@@ -32,7 +26,8 @@
             </div>
             <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Register</button>
         </form>
+        <hr>
+        <p>do you have account?</p>
+        <a href="{% url 'login' %}" class="bg-blue-700 ">Login</a>
     </div>
-</body>
-
-</html>
+{% endblock %}
