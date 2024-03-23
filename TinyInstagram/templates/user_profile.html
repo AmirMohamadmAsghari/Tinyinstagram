@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto py-8">
+        <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+            <div class="px-6 py-4 bg-gray-700">
+                <h2 class="text-2xl font-semibold text-white">User Profile: {{ profile.user.name }}</h2>
+            </div>
+            <div class="px-6 py-4">
+                {% load static %}
+                {% if profile.avatar %}
+                    <img class="w-full h-32 object-cover rounded-lg" src="{{ profile.avatar.url }}" alt="Avatar">
+                {% else %}
+                    <!-- Provide a default avatar image if the user does not have one -->
+                    <img class="w-full h-32 object-cover rounded-lg" src="{% static 'path/to/default_avatar.jpg' %}" alt="Avatar">
+                {% endif %}
+                <div class="mt-4">
+                    <p class="text-gray-800 text-lg font-semibold">Bio:</p>
+                    <p class="text-gray-600">{{ profile.bio }}</p>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-100 border-t border-gray-200">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-800 text-lg font-semibold">Followers:</p>
+                        <p class="text-gray-600" id="follower-count">{{ profile.followers }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-800 text-lg font-semibold">Following:</p>
+                        <p class="text-gray-600">{{ profile.following }}</p>
+                    </div>
+                </div>
+                 <div>
+                    <p class="text-gray-800 text-lg font-semibold">Posts:</p>
+                    <p class="text-gray-600">{{ profile.user.posts.count }}</p>
+                </div>
+            </div>
+             <div class="px-6 py-4 bg-gray-100 border-t border-gray-200">
+               <button class="follow-btn bg-blue-500" data-user-id="{{ profile.user.id }}">Follow</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+<script>
+    $(document).ready(function() {
+        $('.follow-btn').click(function() {
+            var userId = $(this).data('user-id');
+            $.ajax({
+                url: '{% url 'follow_user' %}',
+                type: 'POST',
+                dataType: 'json',
+                beforeSend: function(xhr) {
+                    // Add loading state here if needed
+                },
+                success: function(data) {
+                    if (data.success) {
+                        // Update UI: Change button appearance, update follower count
+                        var followerCount = parseInt($('#follower-count').text());
+                        $('#follower-count').text(followerCount + 1);
+                        // Optionally, show a success message
+                    } else {
+                        // Handle error case
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle AJAX errors
+                },
+                complete: function(xhr, status) {
+                    // Remove loading state here if added
+                }
+            });
+        });
+    });
+</script>
+
