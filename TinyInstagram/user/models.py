@@ -26,6 +26,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=150)
     email = models.EmailField(blank=True)
     phone = models.CharField(unique=True, max_length=11)
+    otp_code = models.IntegerField(null=True)
+    expiration_time = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -42,6 +44,8 @@ groups = models.ManyToManyField(Group, verbose_name='groups', blank=True,
                                 help_text='The groups this user belongs to. A user will get all permissions granted '
                                           'to each of their groups.',
                                 related_name="user_set", related_query_name="user")
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='profile')
     followers = models.IntegerField(default=0)
@@ -54,9 +58,3 @@ class Follow(models.Model):
     follower = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
     following = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
-
-class OTP(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    otp_code = models.IntegerField()
-    expiration_time = models.DateTimeField()
