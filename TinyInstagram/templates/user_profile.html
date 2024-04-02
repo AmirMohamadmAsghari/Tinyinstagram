@@ -38,41 +38,106 @@
                 </div>
             </div>
              <div class="px-6 py-4 bg-gray-100 border-t border-gray-200">
-               <button class="follow-btn bg-blue-500" data-user-id="{{ profile.user.id }}">Follow</button>
+               {% if request.user != profile.user %}
+                    <div id="follow-buttons" data-profile-id="{{ profile.user.id }}">
+                        {% if user_follows_profile %}
+                            <button id="unfollow-btn">Unfollow</button>
+                        {% else %}
+                            <button id="follow-btn">Follow</button>
+                        {% endif %}
+                    </div>
+                 {% else %}
+                    <div class="px-6 py-4 bg-gray-100 border-t border-gray-200">
+                       <a href="{% url 'new_post' %}" class="bg-blue-500 text-white py-2 px-4 rounded-md">New Post</a>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-100 border-t border-gray-200">
+                       <a href="{% url 'profile_edit' %}" class="bg-blue-500 text-white py-2 px-4 rounded-md">Edit Profile</a>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-100 border-t border-gray-200">
+                       <a href="{% url 'logout' %}" class="bg-blue-500 text-white py-2 px-4 rounded-md">Logout</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
-{% endblock %}
+
 
 <script>
-    $(document).ready(function() {
-        $('.follow-btn').click(function() {
-            var userId = $(this).data('user-id');
-            $.ajax({
-                url: '{% url 'follow_user' %}',
-                type: 'POST',
-                dataType: 'json',
-                beforeSend: function(xhr) {
-                    // Add loading state here if needed
+     document.addEventListener('DOMContentLoaded', function() {
+        const csrfToken = "{{ csrf_token }}";
+
+        // Function to handle sending follow requests
+        function sendFollowRequest(profileId, action) {
+            console.log('Sending follow request...');
+            const url = `/follow/${profileId}/${action}/`;
+            console.log('Request URL:', url);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
                 },
-                success: function(data) {
-                    if (data.success) {
-                        // Update UI: Change button appearance, update follower count
-                        var followerCount = parseInt($('#follower-count').text());
-                        $('#follower-count').text(followerCount + 1);
-                        // Optionally, show a success message
-                    } else {
-                        // Handle error case
-                    }
-                },
-                error: function(xhr, status, error) {
-                    // Handle AJAX errors
-                },
-                complete: function(xhr, status) {
-                    // Remove loading state here if added
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
                 }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // Handle success response (update UI)
+                console.log('Follow request successful.');
+                updateFollowButton(action);
+                if (action === 'follow') {
+                    updateFollowingCount(1); // Increase count by 1 for follow
+                } else if (action === 'unfollow') {
+                    updateFollowingCount(-1); // Decrease count by 1 for unfollow
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
             });
+        }
+
+        // Function to update the follow button UI
+        function updateFollowButton(action) {
+            const followButtons = document.getElementById('follow-buttons');
+            if (followButtons) {
+                if (action === 'follow') {
+                    followButtons.innerHTML = '<button id="unfollow-btn">Unfollow</button>';
+                } else if (action === 'unfollow') {
+                    followButtons.innerHTML = '<button id="follow-btn">Follow</button>';
+                }
+            }
+        }
+
+        // Function to update the following count UI
+        function updateFollowingCount(change) {
+            const followingCountElement = document.getElementById('following-count');
+            if (followingCountElement) {
+                followingCountElement.textContent = parseInt(followingCountElement.textContent) + change;
+            }
+        }
+
+        // Event listener for the follow button
+        const followBtn = document.getElementById('follow-btn');
+        if (followBtn) {
+            followBtn.addEventListener('click', function() {
+                const profileId = document.getElementById('follow-buttons').dataset.profileId;
+                console.log('Follow button clicked for profile ID:', profileId);
+                sendFollowRequest(profileId, 'follow');
+            });
+        }
+
+        // Event listener for the unfollow button
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'unfollow-btn') {
+                const profileId = document.getElementById('follow-buttons').dataset.profileId;
+                console.log('Unfollow button clicked for profile ID:', profileId);
+                sendFollowRequest(profileId, 'unfollow');
+            }
         });
     });
 </script>
 
+{% endblock %}
