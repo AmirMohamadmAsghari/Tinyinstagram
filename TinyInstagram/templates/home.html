@@ -75,7 +75,7 @@
                     <div class="swiper-wrapper">
                         {% for image in post.images.all %}
                         <div class="swiper-slide">
-                            <img src="{{ image.url }}" alt={{ image.id }}>
+                            <img src="{{ image.image.url }}" alt={{ image.id }}>
                         </div>
                         {% endfor %}
                     </div>
@@ -111,15 +111,20 @@
                                         <button type="submit">Submit</button>
                                     </form>
                                 </div>
-                               <div class="replies">
+                              <div class="replies">
                                     {% for reply in post.comments.all %}
                                         {% if reply.parent_comment == comment %}
                                             <div class="reply">
-                                                <p><a href="{% url 'user_profile' reply.user.id %}">{{ reply.user.name }}</a>: {{ reply.content }}</p>
+                                                {% if reply.user %}
+                                                    <p><a href="{% url 'user_profile' reply.user.id %}">{{ reply.user.name }}</a>: {{ reply.content }}</p>
+                                                {% else %}
+                                                    <p>Anonymous User: {{ reply.content }}</p>
+                                                {% endif %}
                                             </div>
                                         {% endif %}
                                     {% endfor %}
-                               </div>
+                              </div>
+
                             </div>
                         {% endif %}
                     {% endfor %}
