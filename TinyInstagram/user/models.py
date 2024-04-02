@@ -24,7 +24,7 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=150)
-    email = models.EmailField(blank=True)
+    email = models.EmailField(blank=True,unique=True)
     phone = models.CharField(unique=True, max_length=11)
     otp_code = models.IntegerField(null=True)
     expiration_time = models.DateTimeField(blank=True, null=True)
