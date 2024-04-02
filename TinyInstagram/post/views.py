@@ -1,13 +1,23 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Post, Like, Images, Dislike, Comment
-from django.db.models import Count
+from user.models import Follow
+from django.db.models import Q
 from django.contrib import messages
 from django.http import JsonResponse
 import logging
 
+
 def home(request):
-    posts = Post.objects.all()
-    return render(request, 'home.html', {"posts": posts})
+    if request.user.is_authenticated:
+        user = request.user
+        print('user', request.user)
+        following_users_ids = Follow.objects.filter(follower=request.user).values_list('following', flat=True)
+        print('following_users_ids', following_users_ids)
+        posts = Post.objects.filter(Q(user=user) | Q(user__id__in=following_users_ids))
+        print('posts', posts)
+    else:
+        posts = Post.objects.all()
+    return render(request, 'home.html', {'posts': posts})
 
 
 def new_post(request):
