@@ -12,6 +12,10 @@ urlpatterns = [
     # path('follow/<int:user_id>/', views.follow_user, name='follow_user'),
     path('search/', views.search_user, name='search_user'),
     path('follow/<int:profile_id>/<action>/', views.follow_user, name='follow_user'),
+    path('check_username/', views.check_username, name='check_username'),
+    path('check_email/', views.check_email, name='check_email'),
+    path('check_phone/', views.check_phone, name='check_phone'),
+
     # path('unfollow/<int:profile_id>/', views.unfollow_user, name='unfollow_user_ajax'),
 ]
 

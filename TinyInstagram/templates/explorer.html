@@ -82,6 +82,13 @@
         <div class="post-card">
             <div class="post-card-content">
                 <h2 class="post-title">{{ post.user.name }}</h2>
+                <div id="follow-buttons" data-profile-id="{{ post.user.id }}">
+                        {% if user_follows_profile %}
+                            <button id="unfollow-btn">Unfollow</button>
+                        {% else %}
+                            <button id="follow-btn">Follow</button>
+                        {% endif %}
+                 </div>
                 <p class="post-content">{{ post.content }}</p>
                 <div class="swiper-container">
                     <div class="swiper-wrapper">
@@ -113,28 +120,49 @@
                     {% for comment in post.comments.all %}
                         {% if not comment.parent_comment %}
                             <div>
-                                <p><a href="{% url 'user_profile' comment.user.id %}">{{ comment.user.name }}</a>: {{ comment.content }}</p>
-                                <button class="reply-btn" data-comment-id="{{ comment.id }}">Reply</button>
+                                {% if comment.user %}
+                                 <p class="text-gray-800 mb-2">
+                                    <a href="{% url 'user_profile' comment.user.id %}" class="text-blue-500 hover:underline">{{ comment.user.name }}:</a>
+                                    <span class="text-gray-700">{{ comment.content }}</span>
+                                </p>
+                                {% else %}
+                                <p>Anonymous User: {{ comment.content }}</p>
+                                {% endif %}
+                                {% if comment.user == request.user %}
+                                <form action="{% url 'delete_comment' comment.id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="referring_page" value="explore">
+                                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-2 rounded">
+                                        Delete Comment
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <button class="reply-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" data-comment-id="{{ comment.id }}">Reply</button>
                                 <div class="reply-form hidden" data-comment-id="{{ comment.id }}">
                                     <form action="{% url 'add_reply' %}" method="post">
                                         {% csrf_token %}
+                                        <input type="hidden" name="referring_page" value="explore">
                                         <input type="hidden" name="comment_id" value="{{ comment.id }}">
                                         <textarea name="reply" rows="3" cols="30" placeholder="Add a reply"></textarea>
-                                        <button type="submit">Submit</button>
+                                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                            Reply
+                                        </button>
+
                                     </form>
                                 </div>
                                <div class="replies">
                                     {% for reply in post.comments.all %}
                                         {% if reply.parent_comment == comment %}
                                             <div class="reply">
-                                                {% if replay.user %}
-                                                <p><a href="{% url 'user_profile' reply.user.id %}">{{ reply.user.name }}</a>: {{ reply.content }}</p>
+                                                {% if reply.user %}
+                                                    <p><a href="{% url 'user_profile' reply.user.id %}">{{ reply.user.name }}</a>: {{ reply.content }}</p>
+                                                {% else %}
+                                                    <p>Anonymous User: {{ reply.content }}</p>
                                                 {% endif %}
-
                                             </div>
                                         {% endif %}
                                     {% endfor %}
-                               </div>
+                              </div>
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -145,9 +173,10 @@
                 {% endif %}
                 <form action="{% url 'add_comment' %}" method="post">
                     {% csrf_token %}
+                    <input type="hidden" name="referring_page" value="explore">
                     <input type="hidden" name="post_id" value="{{ post.id }}">
                     <textarea name="comment" rows="3" cols="30" placeholder="Add a comment"></textarea>
-                    <button type="submit">Submit</button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add comment</button>
                 </form>
             </div>
 
@@ -272,5 +301,80 @@ document.addEventListener('click', function(event) {
         window.location.href = event.target.href;
     }
 });
+     document.addEventListener('DOMContentLoaded', function() {
+        const csrfToken = "{{ csrf_token }}";
+
+        // Function to handle sending follow requests
+        function sendFollowRequest(profileId, action) {
+            console.log('Sending follow request...');
+            const url = `/follow/${profileId}/${action}/`;
+            console.log('Request URL:', url);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                // Handle success response (update UI)
+                console.log('Follow request successful.');
+                updateFollowButton(action);
+                if (action === 'follow') {
+                    updateFollowingCount(1); // Increase count by 1 for follow
+                } else if (action === 'unfollow') {
+                    updateFollowingCount(-1); // Decrease count by 1 for unfollow
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        }
+
+        // Function to update the follow button UI
+        function updateFollowButton(action) {
+            const followButtons = document.getElementById('follow-buttons');
+            if (followButtons) {
+                if (action === 'follow') {
+                    followButtons.innerHTML = '<button id="unfollow-btn">Unfollow</button>';
+                } else if (action === 'unfollow') {
+                    followButtons.innerHTML = '<button id="follow-btn">Follow</button>';
+                }
+            }
+        }
+
+        // Function to update the following count UI
+        function updateFollowingCount(change) {
+            const followingCountElement = document.getElementById('following-count');
+            if (followingCountElement) {
+                followingCountElement.textContent = parseInt(followingCountElement.textContent) + change;
+            }
+        }
+
+        // Event listener for the follow button
+        const followBtn = document.getElementById('follow-btn');
+        if (followBtn) {
+            followBtn.addEventListener('click', function() {
+                const profileId = document.getElementById('follow-buttons').dataset.profileId;
+                console.log('Follow button clicked for profile ID:', profileId);
+                sendFollowRequest(profileId, 'follow');
+            });
+        }
+
+        // Event listener for the unfollow button
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'unfollow-btn') {
+                const profileId = document.getElementById('follow-buttons').dataset.profileId;
+                console.log('Unfollow button clicked for profile ID:', profileId);
+                sendFollowRequest(profileId, 'unfollow');
+            }
+        });
+    });
     </script>
 {% endblock %}

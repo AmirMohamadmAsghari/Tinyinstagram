@@ -1,33 +1,241 @@
-{% extends 'base.html' %}
-
-{% block title %}Register{% endblock %}
-
-
-{% block content %}
-    <div class="max-w-md w-full p-6 bg-white rounded-lg shadow-lg container mx-auto py-8">
-        <h2 class="text-2xl font-semibold mb-4">User Registration</h2>
-        <form action="{% url 'register' %}" method="POST">
-            {% csrf_token %}
-            <div class="mb-4">
-                <label for="username" class="block text-gray-700 font-medium">Username</label>
-                <input type="text" id="username" name="name" class="border-4 border-purple-900 mt-1 block border-purple-900 w-full rounded-md  focus:border-purple-900 focus:ring-indigo-500">
-            </div>
-            <div class="mb-4">
-                <label for="email" class="block text-gray-700 font-medium">Email</label>
-                <input type="email" id="email" name="email" class="border-4 border-purple-900 mt-1 block w-full rounded-md  focus:border-purple-900 focus:ring-indigo-500">
-            </div>
-            <div class="mb-4">
-                <label for="phone" class="block text-gray-700 font-medium">Phone</label>
-                <input type="text" id="phone" name="phone" class="border-4 border-purple-900 mt-1 block w-full rounded-md  focus:border-purple-900 focus:ring-indigo-500">
-            </div>
-            <div class="mb-4">
-                <label for="password" class="block text-gray-700 font-medium">Password</label>
-                <input type="password" id="password" name="password" class="border-4 border-purple-900 mt-1 block w-full rounded-md">
-            </div>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Register</button>
-        </form>
-        <hr>
-        <p>do you have account?</p>
-        <a href="{% url 'login' %}" class="bg-blue-700 ">Login</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="max-w-md w-full p-6 bg-white rounded-lg shadow-lg container mx-auto py-8">
+    <h2 class="text-2xl font-semibold mb-4">User Registration</h2>
+    <form id="registrationForm">
+    {% csrf_token %}
+    <div class="mb-4">
+        <label for="username" class="block text-gray-700 font-medium">Username</label>
+        <input type="text" id="username" name="username" class="border-4 border-purple-900 mt-1 block border-purple-900 w-full rounded-md focus:border-purple-900 focus:ring-indigo-500" required>
+        <p id="usernameError" class="text-red-500 mt-1"></p>
     </div>
-{% endblock %}
+    <div class="mb-4">
+        <label for="email" class="block text-gray-700 font-medium">Email</label>
+        <input type="email" id="email" name="email" class="border-4 border-purple-900 mt-1 block w-full rounded-md focus:border-purple-900 focus:ring-indigo-500" required>
+        <p id="emailError" class="text-red-500 mt-1"></p>
+    </div>
+    <div class="mb-4">
+        <label for="phone" class="block text-gray-700 font-medium">Phone</label>
+        <input type="tel" id="phone" name="phone" class="border-4 border-purple-900 mt-1 block w-full rounded-md focus:border-purple-900 focus:ring-indigo-500" required>
+        <p id="phoneError" class="text-red-500 mt-1"></p>
+    </div>
+    <div class="mb-4">
+        <label for="password" class="block text-gray-700 font-medium">Password</label>
+        <input type="password" id="password" name="password" class="border-4 border-purple-900 mt-1 block w-full rounded-md" required>
+        <p id="passwordError" class="text-red-500 mt-1"></p>
+    </div>
+
+    <button type="button" onclick="validateForm()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Register</button>
+</form>
+    <hr>
+    <p>Already have an account? <a href="{% url 'login' %}" class="bg-blue-700">Login</a></p>
+</div>
+
+<script>
+    function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+    function validateForm() {
+    var username = document.getElementById('username').value;
+    var email = document.getElementById('email').value;
+    var phone = document.getElementById('phone').value;
+    var password = document.getElementById('password').value;
+
+    // Validate username
+    var isUsernameValid = validateUsername(username);
+
+    // Validate email
+    var isEmailValid = validateEmail(email);
+
+    // Validate phone
+    var isPhoneValid = validatePhone(phone);
+
+    // Validate password
+    var isPasswordValid = validatePassword(password);
+
+    console.log("Username Valid:", isUsernameValid);
+    console.log("Email Valid:", isEmailValid);
+    console.log("Phone Valid:", isPhoneValid);
+    console.log("Password Valid:", isPasswordValid);
+
+    // Check if all validations passed
+    if (isUsernameValid && isEmailValid && isPhoneValid && isPasswordValid) {
+        // If all validations pass, proceed with registration
+        console.log('hi');
+        registerUser();
+    }
+}
+
+
+function validateUsername(username) {
+    var isValid = false; // Initialize validation flag
+    // AJAX request to check username uniqueness
+    // Replace 'check_username_url' with the actual URL to your backend endpoint
+    $.ajax({
+        url: '/check_username/',
+        type: 'POST',
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        data: {username: username},
+        async: false, // Make the AJAX request synchronous
+        success: function(response) {
+            if (response.exists) {
+                document.getElementById('usernameError').innerText = 'Username already exists.';
+            } else {
+                document.getElementById('usernameError').innerText = '';
+                isValid = true; // Set validation flag to true if validation passes
+            }
+        }
+    });
+    return isValid; // Return the validation flag
+}
+
+function validateEmail(email) {
+    var isValid = false; // Initialize validation flag
+    // AJAX request to check email validity and uniqueness
+    // Replace 'check_email_url' with the actual URL to your backend endpoint
+    $.ajax({
+        url: '/check_email/',
+        type: 'POST',
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        data: {email: email},
+        async: false, // Make the AJAX request synchronous
+        success: function(response) {
+            if (!response.valid) {
+                document.getElementById('emailError').innerText = 'Invalid email format.';
+            } else if (response.exists) {
+                document.getElementById('emailError').innerText = 'Email already exists.';
+            } else {
+                document.getElementById('emailError').innerText = '';
+                isValid = true; // Set validation flag to true if validation passes
+            }
+        }
+    });
+    return isValid; // Return the validation flag
+}
+
+function validatePhone(phone) {
+    var isValid = false; // Initialize validation flag
+
+    // Check if the phone number contains only numbers
+    if (/^\d+$/.test(phone)) {
+        // Check if the phone number length is between 9 and 12 characters
+        if (phone.length >= 9 && phone.length <= 12) {
+            // AJAX request to check phone number uniqueness
+            // Replace 'check_phone_url' with the actual URL to your backend endpoint
+            $.ajax({
+                url: '/check_phone/',
+                type: 'POST',
+                headers: { "X-CSRFToken": getCookie("csrftoken") },
+                data: {phone: phone},
+                async: false, // Make the AJAX request synchronous
+                success: function(response) {
+                    if (response.exists) {
+                        document.getElementById('phoneError').innerText = 'Phone number already exists.';
+                    } else {
+                        document.getElementById('phoneError').innerText = '';
+                        isValid = true; // Set validation flag to true if validation passes
+                    }
+                }
+            });
+        } else {
+            document.getElementById('phoneError').innerText = 'Phone number must be between 9 and 12 characters.';
+        }
+    } else {
+        document.getElementById('phoneError').innerText = 'Phone number must contain only numbers.';
+    }
+
+    return isValid; // Return the validation flag
+}
+
+function validatePassword(password) {
+   var errorMessage = "";
+
+    // Check if password length is at least 8 characters
+    if (password.length < 8) {
+        errorMessage += "Password must be at least 8 characters long.\n";
+    }
+
+    // Check if password contains at least one lowercase letter
+    if (!/[a-z]/.test(password)) {
+        errorMessage += "Password must contain at least one lowercase letter.\n";
+    }
+
+    // Check if password contains at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        errorMessage += "Password must contain at least one uppercase letter.\n";
+    }
+
+    // Check if password contains at least one digit
+    if (!/\d/.test(password)) {
+        errorMessage += "Password must contain at least one digit.\n";
+    }
+
+    // Check if password contains at least one special character
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+        errorMessage += "Password must contain at least one special character.\n";
+    }
+
+    // Update the error message in the HTML
+    var passwordError = document.getElementById("passwordError");
+    passwordError.innerText = errorMessage;
+
+    // If errorMessage is not empty, return false
+    if(errorMessage !== "") {
+        return false;
+    }
+
+    return true;
+}
+// Function to submit the form data to the backend
+function registerUser() {
+    var username = document.getElementById('username').value;
+    var email = document.getElementById('email').value;
+    var phone = document.getElementById('phone').value;
+    var password = document.getElementById('password').value;
+
+    $.ajax({
+        url: '',
+        type: 'POST',
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        data: {
+            username: username,
+            email: email,
+            phone: phone,
+            password: password
+        },
+        success: function(response) {
+            // Handle success response here
+            console.log(response);
+            // Redirect to login page or display a success message
+            window.location.href = '/post/home/';
+        },
+        error: function(xhr, textStatus, error) {
+            // Handle error response here
+            console.log(xhr.statusText);
+            // Display an error message to the user
+        }
+    });
+}
+</script>
+</body>
+</html>

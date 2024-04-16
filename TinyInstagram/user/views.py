@@ -1,4 +1,7 @@
 from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import FollowSerializer
 from django.shortcuts import render, redirect
 from .models import User, Profile, Follow
 from django.contrib.auth import authenticate, login, logout
@@ -10,10 +13,32 @@ from django.utils import timezone
 from .utils import generate_otp_code, send_email
 
 
+def check_username(request):
+    username = request.POST.get('name')
+    print(username)
+    user_exists = User.objects.filter(name=username).exists()
+    return JsonResponse({'exists': user_exists})
+
+
+def check_email(request):
+    email = request.POST.get('email')
+    # You can use a library like validate_email to check email format
+    # Here, we assume a basic format validation
+    is_valid = '@' in email and '.' in email
+    email_exists = User.objects.filter(email=email).exists()
+    return JsonResponse({'valid': is_valid, 'exists': email_exists})
+
+
+def check_phone(request):
+    phone = request.POST.get('phone')
+    phone_exists = User.objects.filter(phone=phone).exists()
+    return JsonResponse({'exists': phone_exists})
 # Create your views here.
+
+
 def register(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
+        name = request.POST.get('username')
         email = request.POST.get('email')
         phone = request.POST.get('phone')
         password = request.POST.get('password')
@@ -61,13 +86,13 @@ def login_user(request):
 def verify_otp(request):
     if request.method == 'POST':
         otp_code = request.POST.get('otp_code')
-        phone = request.POST.get('phone')  # Retrieve phone number from the form
+        phone = request.POST.get('phone')
         print(phone, otp_code)
         user = User.objects.filter(phone=phone).first()
         if user:
             print(user.phone, user.otp_code)
             if str(user.otp_code).strip() == str(otp_code).strip():
-                login(request, user)  # Authenticate the user here
+                login(request, user)
                 messages.success(request, 'Your login was successful!')
                 return redirect('home')
             else:
@@ -95,10 +120,23 @@ def profile_edit(request):
         profile = request.user.profile
         bio = request.POST.get('bio')
         avatar = request.FILES.get('avatar')
+        new_password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.', 'error')
+            return redirect('profile_edit')
+
         if avatar:
             profile.avatar = avatar
         profile.bio = bio
         profile.save()
+
+        if new_password:
+            request.user.password = make_password(new_password)
+            request.user.save()
+            messages.success(request, 'Your password was successfully updated.', 'success')
+
         messages.success(request, 'Your changes have been saved.', 'success')
         return redirect('profile')
     return render(request, 'profile_edit.html')
@@ -108,7 +146,7 @@ def user_profile(request, user_id):
     user = get_object_or_404(User, id=user_id)
     profile = get_object_or_404(Profile, user=user)
 
-    return render(request, 'user_profile.html', {"user": user,'profile': profile})
+    return render(request, 'user_profile.html', {"user": user, 'profile': profile})
 
 
 # @login_required
@@ -136,24 +174,23 @@ def user_profile(request, user_id):
 #             return JsonResponse({'success': False, 'error': 'You are already following this user'})
 #     else:
 #         return JsonResponse({'success': False, 'error': 'Invalid request method'})
+@api_view(['POST'])
 @login_required
 def follow_user(request, profile_id, action):
     if action == 'follow':
         if request.method == 'POST':
-            profile = get_object_or_404(Profile, pk=profile_id)
+            profile = get_object_or_404(Profile, id=profile_id)
             follower_profile = request.user.profile
-            follow_instance, created = Follow.objects.get_or_create(follower=follower_profile.user,
-                                                                    following=profile.user)
-            if created:
-                # Increase the number of followers for the user being followed (Ali)
+            follow_instance, create = Follow.objects.get_or_create(follower=follower_profile, following=profile.user)
+            if create:
                 profile.followers += 1
                 profile.save()
-                # Increase the number of followings for the follower (Amir)
                 follower_profile.following += 1
                 follower_profile.save()
-                return JsonResponse({'status': 'success', 'action': 'followed', 'following_count': profile.followers})
+                follow_serializer = FollowSerializer(follow_instance)
+                return Response({'status': 'success', 'action': 'followed', 'following_count': profile.followers, 'follow': follow_serializer.data})
             else:
-                return JsonResponse({'status': 'error', 'message': 'You are already following this user.'})
+                return Response({'status': 'error', 'message': 'You are already following this user.'}, status=400)
     elif action == 'unfollow':
         if request.method == 'POST':
             profile = get_object_or_404(Profile, pk=profile_id)
@@ -161,17 +198,50 @@ def follow_user(request, profile_id, action):
             follow_instance = Follow.objects.filter(follower=follower_profile.user, following=profile.user).first()
             if follow_instance:
                 follow_instance.delete()
-                # Decrease the number of followers for the user being unfollowed (Ali)
                 profile.followers -= 1
                 profile.save()
-                # Decrease the number of followings for the follower (Amir)
                 follower_profile.following -= 1
                 follower_profile.save()
-                return JsonResponse({'status': 'success', 'action': 'unfollowed', 'following_count': profile.followers})
+                return Response({'status': 'success', 'action': 'unfollowed', 'following_count': profile.followers})
             else:
-                return JsonResponse({'status': 'error', 'message': 'You are not following this user.'})
+                return Response({'status': 'error', 'message': 'You are not following this user.'}, status=400)
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid action or request method.'}, status=400)
+        return Response({'status': 'error', 'message': 'Invalid action or request method.'}, status=400)
+
+
+# @login_required
+# def follow_user(request, profile_id, action):
+#     if action == 'follow':
+#         if request.method == 'POST':
+#             profile = get_object_or_404(Profile, pk=profile_id)
+#             follower_profile = request.user.profile
+#             follow_instance, created = Follow.objects.get_or_create(follower=follower_profile.user,
+#                                                                     following=profile.user)
+#             if created:
+#                 profile.followers += 1
+#                 profile.save()
+#                 follower_profile.following += 1
+#                 follower_profile.save()
+#                 return JsonResponse({'status': 'success', 'action': 'followed', 'following_count': profile.followers})
+#             else:
+#                 return JsonResponse({'status': 'error', 'message': 'You are already following this user.'})
+#     elif action == 'unfollow':
+#         if request.method == 'POST':
+#             profile = get_object_or_404(Profile, pk=profile_id)
+#             follower_profile = request.user.profile
+#             follow_instance = Follow.objects.filter(follower=follower_profile.user, following=profile.user).first()
+#             if follow_instance:
+#                 follow_instance.delete()
+#                 profile.followers -= 1
+#                 profile.save()
+#                 follower_profile.following -= 1
+#                 follower_profile.save()
+#                 return JsonResponse({'status': 'success', 'action': 'unfollowed', 'following_count': profile.followers})
+#             else:
+#                 return JsonResponse({'status': 'error', 'message': 'You are not following this user.'})
+#
+#     return JsonResponse({'status': 'error', 'message': 'Invalid action or request method.'}, status=400)
+
 
 # @login_required
 # def unfollow_user(request, profile_id):
@@ -188,9 +258,6 @@ def follow_user(request, profile_id, action):
 #             return JsonResponse({'status': 'error', 'message': 'You are not following this user.'})
 
 
-
-
-
 def search_user(request):
     query = request.GET.get('query', '')
     if query:
@@ -203,4 +270,3 @@ def search_user(request):
             return JsonResponse({'message': 'User not found'})
     else:
         return JsonResponse({'message': 'Enter a search query.'})
-
