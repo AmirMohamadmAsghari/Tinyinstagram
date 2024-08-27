@@ -26,5 +26,16 @@ This project serves as my first experience with Django and web development.
    - Users can comment on posts.
    - Comments can have replies, creating a conversation thread under a post.
 
+
+## Screenshots
+
+<div style="display: flex; overflow-x: auto;">
+  <img src="https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/user_post.png" alt="Login Page" width="300" style="margin-right: 10px;"/>
+  <img src="https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/edite_profile.png" alt="Profile Page" width="300" style="margin-right: 10px;"/>
+  <img src="https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/explore.png" alt="Post Creation" width="300" style="margin-right: 10px;"/>
+  <img src="https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/user_login.png" alt="Post Like" width="300" style="margin-right: 10px;"/>
+  <img src="https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/regester.png" alt="Comments Section" width="300"/>
+</div>
+https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/user_post.png
 ![Alt Text](https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/user_post.png)
 ![ERD](https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/ERD.png)
