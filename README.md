@@ -38,6 +38,6 @@ This project serves as my first experience with Django and web development.
 </div>
 
 
-##ERD
+## ERD
 
 ![ERD](https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/ERD.png)
