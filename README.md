@@ -26,5 +26,5 @@ This project serves as my first experience with Django and web development.
    - Users can comment on posts.
    - Comments can have replies, creating a conversation thread under a post.
 
-![Alt Text](https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/user_post)
+![Alt Text](https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/assert/images/user_post.png)
 ![ERD](https://github.com/AmirMohamadmAsghari/Maktab105_Tinyinstagram/blob/main/ERD.png)
